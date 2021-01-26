@@ -28,14 +28,20 @@ pub type CGGradientRef = *mut CGGradient;
 
 #[cfg(target_os = "macos")]
 mod macos {
-	pub enum CGEvent {}
-	pub type CGEventRef = *mut CGEvent;
+    pub enum CGEvent {}
+    pub type CGEventRef = *mut CGEvent;
 
-	pub enum CGEventSource {}
-	pub type CGEventSourceRef = *mut CGEventSource;
+    pub enum CGEventSource {}
+    pub type CGEventSourceRef = *mut CGEventSource;
 
-	pub enum CGDisplayMode {}
-	pub type CGDisplayModeRef = *mut CGDisplayMode;
+    pub enum CGDisplayMode {}
+    pub type CGDisplayModeRef = *mut CGDisplayMode;
+
+    pub enum CGDisplayStream {}
+    pub type CGDisplayStreamRef = *mut CGDisplayStream;
+
+    pub enum CGDisplayStreamUpdate {}
+    pub type CGDisplayStreamUpdateRef = *mut CGDisplayStreamUpdate;
 }
 
 #[cfg(target_os = "macos")]
