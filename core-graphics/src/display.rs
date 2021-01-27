@@ -641,6 +641,18 @@ extern "C" {
 
     pub static kCGDisplayShowDuplicateLowResolutionModes: CFStringRef;
 
+    pub static kCGDisplayStreamSourceRect: CFStringRef;
+    pub static kCGDisplayStreamDestinationRect: CFStringRef;
+    pub static kCGDisplayStreamPreserveAspectRatio: CFStringRef;
+    pub static kCGDisplayStreamColorSpace: CFStringRef;
+    pub static kCGDisplayStreamMinimumFrameTime: CFStringRef;
+    pub static kCGDisplayStreamShowCursor: CFStringRef;
+    pub static kCGDisplayStreamQueueDepth: CFStringRef;
+    pub static kCGDisplayStreamYCbCrMatrix: CFStringRef;
+    pub static kCGDisplayStreamYCbCrMatrix_ITU_R_709_2: CFStringRef;
+    pub static kCGDisplayStreamYCbCrMatrix_ITU_R_601_4: CFStringRef;
+    pub static kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995: CFStringRef;
+
     pub fn CGDisplayModeRelease(mode: ::sys::CGDisplayModeRef);
 
     pub fn CGMainDisplayID() -> CGDirectDisplayID;
