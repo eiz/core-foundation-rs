@@ -10,22 +10,22 @@
 #![crate_name = "io_surface"]
 #![crate_type = "rlib"]
 
-extern crate libc;
-extern crate core_foundation;
 extern crate cgl;
+extern crate core_foundation;
 extern crate leaky_cow;
+extern crate libc;
 
 // Rust bindings to the IOSurface framework on macOS.
 
-use core_foundation::base::{CFRelease, CFRetain, CFTypeID, CFTypeRef, CFType, TCFType};
+use cgl::{kCGLNoError, CGLErrorString, CGLGetCurrentContext, CGLTexImageIOSurface2D, GLenum};
+use core_foundation::base::{CFRelease, CFRetain, CFType, CFTypeID, CFTypeRef, TCFType};
 use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
 use core_foundation::string::{CFString, CFStringRef};
-use cgl::{kCGLNoError, CGLGetCurrentContext, CGLTexImageIOSurface2D, CGLErrorString, GLenum};
-use libc::{c_int, size_t};
-use std::os::raw::c_void;
 use leaky_cow::LeakyCow;
-use std::slice;
+use libc::{c_int, size_t};
 use std::ffi::CStr;
+use std::os::raw::c_void;
+use std::slice;
 
 const BGRA: GLenum = 0x80E1;
 const RGBA: GLenum = 0x1908;
@@ -49,9 +49,7 @@ pub struct IOSurface {
 
 impl Drop for IOSurface {
     fn drop(&mut self) {
-        unsafe {
-            CFRelease(self.as_CFTypeRef())
-        }
+        unsafe { CFRelease(self.as_CFTypeRef()) }
     }
 }
 
@@ -60,9 +58,7 @@ pub type IOSurfaceID = u32;
 impl Clone for IOSurface {
     #[inline]
     fn clone(&self) -> IOSurface {
-        unsafe {
-            TCFType::wrap_under_get_rule(self.obj)
-        }
+        unsafe { TCFType::wrap_under_get_rule(self.obj) }
     }
 }
 
@@ -77,16 +73,12 @@ impl TCFType for IOSurface {
     #[inline]
     unsafe fn wrap_under_create_rule(obj: IOSurfaceRef) -> IOSurface {
         assert!(!obj.is_null(), "Attempted to create a NULL object.");
-        IOSurface {
-            obj: obj,
-        }
+        IOSurface { obj: obj }
     }
 
     #[inline]
     fn type_id() -> CFTypeID {
-        unsafe {
-            IOSurfaceGetTypeID()
-        }
+        unsafe { IOSurfaceGetTypeID() }
     }
 
     #[inline]
@@ -103,40 +95,40 @@ impl TCFType for IOSurface {
 }
 
 pub fn new(properties: &CFDictionary<CFString, CFType>) -> IOSurface {
-    unsafe {
-        TCFType::wrap_under_create_rule(IOSurfaceCreate(properties.as_concrete_TypeRef()))
-    }
+    unsafe { TCFType::wrap_under_create_rule(IOSurfaceCreate(properties.as_concrete_TypeRef())) }
 }
 
 /// Looks up an `IOSurface` by its global ID.
 ///
 /// FIXME(pcwalton): This should return an `Option`.
 pub fn lookup(csid: IOSurfaceID) -> IOSurface {
-    unsafe {
-        TCFType::wrap_under_create_rule(IOSurfaceLookup(csid))
-    }
+    unsafe { TCFType::wrap_under_create_rule(IOSurfaceLookup(csid)) }
 }
 
 impl IOSurface {
     pub fn get_id(&self) -> IOSurfaceID {
-        unsafe {
-            IOSurfaceGetID(self.as_concrete_TypeRef())
-        }
+        unsafe { IOSurfaceGetID(self.as_concrete_TypeRef()) }
     }
 
     /// Binds to the current GL texture.
     pub fn bind_to_gl_texture(&self, width: i32, height: i32, has_alpha: bool) {
         unsafe {
             let context = CGLGetCurrentContext();
-            let gl_error = CGLTexImageIOSurface2D(context,
-                                                  TEXTURE_RECTANGLE_ARB,
-                                                  if has_alpha { RGBA as GLenum } else { RGB as GLenum },
-                                                  width,
-                                                  height,
-                                                  BGRA as GLenum,
-                                                  UNSIGNED_INT_8_8_8_8_REV,
-                                                  self.as_concrete_TypeRef() as *mut libc::c_void,
-                                                  0);
+            let gl_error = CGLTexImageIOSurface2D(
+                context,
+                TEXTURE_RECTANGLE_ARB,
+                if has_alpha {
+                    RGBA as GLenum
+                } else {
+                    RGB as GLenum
+                },
+                width,
+                height,
+                BGRA as GLenum,
+                UNSIGNED_INT_8_8_8_8_REV,
+                self.as_concrete_TypeRef() as *mut libc::c_void,
+                0,
+            );
 
             if gl_error != kCGLNoError {
                 let error_msg = CStr::from_ptr(CGLErrorString(gl_error));
@@ -166,10 +158,26 @@ impl IOSurface {
             IOSurfaceUnlock(surface, 0, &mut seed);
         }
     }
+
+    pub fn increment_use_count(&self) {
+        unsafe {
+            let surface = self.as_concrete_TypeRef();
+
+            IOSurfaceIncrementUseCount(surface);
+        }
+    }
+
+    pub fn decrement_use_count(&self) {
+        unsafe {
+            let surface = self.as_concrete_TypeRef();
+
+            IOSurfaceDecrementUseCount(surface);
+        }
+    }
 }
 
 #[link(name = "IOSurface", kind = "framework")]
-extern {
+extern "C" {
     pub static kIOSurfaceAllocSize: CFStringRef;
     pub static kIOSurfaceWidth: CFStringRef;
     pub static kIOSurfaceHeight: CFStringRef;
@@ -207,4 +215,7 @@ extern {
     fn IOSurfaceGetHeight(buffer: IOSurfaceRef) -> size_t;
     fn IOSurfaceGetBytesPerRow(buffer: IOSurfaceRef) -> size_t;
     fn IOSurfaceGetBaseAddress(buffer: IOSurfaceRef) -> *mut c_void;
+
+    fn IOSurfaceIncrementUseCount(buffer: IOSurfaceRef) -> ();
+    fn IOSurfaceDecrementUseCount(buffer: IOSurfaceRef) -> ();
 }
