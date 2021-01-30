@@ -98,14 +98,12 @@ pub use core_foundation::dictionary::{
     CFDictionary, CFDictionaryGetValueIfPresent, CFDictionaryRef,
 };
 
-use crate::sys::{CGDisplayStreamRef, CGDisplayStreamUpdateRef};
-
 pub type CGDisplayStreamFrameAvailableHandler = Block<
     (
         CGDisplayStreamFrameStatus,
         u64,
         IOSurfaceRef,
-        CGDisplayStreamUpdateRef,
+        ::sys::CGDisplayStreamUpdateRef,
     ),
     (),
 >;
@@ -761,7 +759,7 @@ extern "C" {
         pixelFormat: i32,
         properties: CFDictionaryRef,
         handler: &CGDisplayStreamFrameAvailableHandler,
-    ) -> CGDisplayStreamRef;
+    ) -> ::sys::CGDisplayStreamRef;
     #[allow(improper_ctypes)]
     pub fn CGDisplayStreamCreateWithDispatchQueue(
         display: CGDirectDisplayID,
@@ -771,7 +769,7 @@ extern "C" {
         properties: CFDictionaryRef,
         queue: dispatch_queue_t,
         handler: &CGDisplayStreamFrameAvailableHandler,
-    ) -> CGDisplayStreamRef;
-    pub fn CGDisplayStreamStart(displayStream: CGDisplayStreamRef) -> CGError;
-    pub fn CGDisplayStreamStop(displayStream: CGDisplayStreamRef) -> CGError;
+    ) -> ::sys::CGDisplayStreamRef;
+    pub fn CGDisplayStreamStart(displayStream: ::sys::CGDisplayStreamRef) -> CGError;
+    pub fn CGDisplayStreamStop(displayStream: ::sys::CGDisplayStreamRef) -> CGError;
 }
