@@ -109,59 +109,6 @@ pub enum CGInterpolationQuality {
     CGInterpolationQualityHigh,
 }
 
-bitflags! {
-    #[repr(C)]
-    pub struct CGImageAlphaInfo: u32 {
-        const CGImageAlphaNone = 0;
-        const CGImageAlphaPremultipliedLast = 1;
-        const CGImageAlphaPremultipliedFirst = 2;
-        const CGImageAlphaLast = 3;
-        const CGImageAlphaFirst = 4;
-        const CGImageAlphaNoneSkipLast = 5;
-        const CGImageAlphaNoneSkipFirst = 6;
-        const CGImageAlphaOnly = 7;
-    }
-}
-
-bitflags! {
-    #[repr(C)]
-    pub struct CGImageByteOrderInfo: u32 {
-        const CGImageByteOrderMask     = 0x7000;
-        const CGImageByteOrderDefault  = (0 << 12);
-        const CGImageByteOrder16Little = (1 << 12);
-        const CGImageByteOrder32Little = (2 << 12);
-        const CGImageByteOrder16Big    = (3 << 12);
-        const CGImageByteOrder32Big    = (4 << 12);
-    }
-}
-
-bitflags! {
-    #[repr(C)]
-    pub struct CGImagePixelFormatInfo: u32 {
-        const CGImagePixelFormatMask      = 0xF0000;
-        const CGImagePixelFormatPacked    = (0 << 16);
-        const CGImagePixelFormatRGB555    = (1 << 16);
-        const CGImagePixelFormatRGB565    = (2 << 16);
-        const CGImagePixelFormatRGB101010 = (3 << 16);
-        const CGImagePixelFormatRGBCIF10  = (4 << 16);
-    }
-}
-
-bitflags! {
-    #[repr(C)]
-    pub struct CGBitmapInfo: u32 {
-        const kCGBitmapAlphaInfoMask = 0x1F;
-        const kCGBitmapFloatInfoMask = 0xF00;
-        const kCGBitmapFloatComponents = (1 << 8);
-        const kCGBitmapByteOrderMask     = CGImageByteOrderInfo::CGImageByteOrderMask.bits;
-        const kCGBitmapByteOrderDefault  = CGImageByteOrderInfo::CGImageByteOrderDefault.bits;
-        const kCGBitmapByteOrder16Little = CGImageByteOrderInfo::CGImageByteOrder16Little.bits;
-        const kCGBitmapByteOrder32Little = CGImageByteOrderInfo::CGImageByteOrder32Little.bits;
-        const kCGBitmapByteOrder16Big    = CGImageByteOrderInfo::CGImageByteOrder16Big.bits;
-        const kCGBitmapByteOrder32Big    = CGImageByteOrderInfo::CGImageByteOrder32Big.bits;
-    }
-}
-
 foreign_type! {
     #[doc(hidden)]
     type CType = ::sys::CGContext;
@@ -221,9 +168,9 @@ impl CGContext {
         width: size_t,
         height: size_t,
         bits_per_component: size_t,
-        bytes_per_row: size_t,
+        bits_per_pixel: size_t,
         space: &CGColorSpace,
-        bitmap_info: CGBitmapInfo,
+        bitmap_info: u32,
     ) -> CGContext {
         unsafe {
             let result = CGIOSurfaceContextCreate(
@@ -231,7 +178,7 @@ impl CGContext {
                 width,
                 height,
                 bits_per_component,
-                bytes_per_row,
+                bits_per_pixel,
                 space.as_ptr(),
                 bitmap_info,
             );
@@ -850,6 +797,6 @@ extern "C" {
         bitsPerComponent: size_t,
         bitsPerPixel: size_t,
         colorSpace: ::sys::CGColorSpaceRef,
-        bitmapInfo: CGBitmapInfo,
+        bitmapInfo: u32,
     ) -> ::sys::CGContextRef;
 }
