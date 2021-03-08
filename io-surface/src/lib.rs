@@ -159,6 +159,29 @@ impl IOSurface {
         }
     }
 
+    pub fn upload_2d(&self, data: &[u8], data_stride: usize) {
+        unsafe {
+            let surface = self.as_concrete_TypeRef();
+            let mut seed = 0;
+
+            IOSurfaceLock(surface, 0, &mut seed);
+
+            let height = IOSurfaceGetHeight(surface);
+            let stride = IOSurfaceGetBytesPerRow(surface);
+            let size = (height * stride) as usize;
+            let address = IOSurfaceGetBaseAddress(surface) as *mut u8;
+            let dest: &mut [u8] = slice::from_raw_parts_mut(address, size);
+
+            for i in 0..height {
+                dest[i * stride..i * stride + stride]
+                    .clone_from_slice(&data[i * data_stride..i * data_stride + data_stride]);
+            }
+
+            // FIXME(pcwalton): RAII
+            IOSurfaceUnlock(surface, 0, &mut seed);
+        }
+    }
+
     pub fn increment_use_count(&self) {
         unsafe {
             let surface = self.as_concrete_TypeRef();
